@@ -5,6 +5,7 @@ var app = {};
 
 app.server = 'https://api.parse.com/1/classes/chatterbox';
 app.rooms = {};
+app.friendList = [];
 
 app.init = function(){
   this.fetch();
@@ -37,13 +38,10 @@ app.fetch = function(){
     type: 'GET',
     contentType: 'application/json',
     success: function (data) {
-      console.log('chatterbox:' + data + ' received');
       var room = $('#roomSelect').find(':selected').text();
-      console.log(data.results);
       _.each(data.results, function(val) {
-        //if(room === val.roomname) {
-          app.addMessage(val);
-        //}
+        app.addMessage(val);
+
         app.rooms[val.roomname] = val.roomname;
       });
       app.refreshRoom();
@@ -76,8 +74,13 @@ app.clearMessages = function(){
 app.addMessage = function (message){
   message.username = app.escapeHTML(message.username);
   message.text = app.escapeHTML(message.text);
+  var node = $('<div class="chat"><a href="#" class="username">' + message.username + '</a>' +':' + message.text + '</div>');
+  if (_.contains(app.friendList, message.username)){
 
-  $('#chats').append('<div>'+ '<a href="#" class="username">' + message.username + '</a>' +':' + message.text + '</div>');
+    node.addClass('friend');
+  }
+
+  $('#chats').append(node);
 }
 
 app.addRoom = function (roomName) {
@@ -94,15 +97,16 @@ app.refreshRoom = function() {
 }
 
 app.addFriend = function(userName) {
-  console.log('here');
+  app.friendList.push(userName);
 }
+//Username click event handler
 $('#chats').on('click', 'a.username', function(evt){
-  //evt.preventDefault();
-    console.log('here also');
-  app.addFriend(this.text());
+
+  var name = this.innerText;
+  app.addFriend(name);
 
 });
-
+//Send message event handler
 $('#main').on('click', '#send', function(evt){
   var textMessage = $('#message').val();
   var user = window.location.search.slice(10);
@@ -112,7 +116,7 @@ $('#main').on('click', '#send', function(evt){
     roomname: 'lobby'
   });
 });
-
+//Chat room event handler
 $('#roomSelect').change(function(evt) {
   console.log('test');
   app.fetch();
@@ -125,9 +129,9 @@ app.init();
  setInterval(function(){
    app.fetch();
  }, 2000);
- // setInterval(function(){
- //   app.clearMessages();
- // }, 10000);
+ setInterval(function(){
+   app.clearMessages();
+ }, 10000);
 
 });
 

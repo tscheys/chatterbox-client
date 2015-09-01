@@ -73,6 +73,10 @@ form input[type=text] {
     background-color: #ddd;
 }
 
+.friend {
+    font-weight: 800;
+}
+
 .spinner {
     float: right;
     height: 46px;
