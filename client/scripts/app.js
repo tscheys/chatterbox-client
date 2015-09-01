@@ -38,10 +38,11 @@ app.fetch = function(){
     type: 'GET',
     contentType: 'application/json',
     success: function (data) {
-      var room = $('#roomSelect').find(':selected').text();
+      app.room = $('#roomSelect').find(':selected').text();
       _.each(data.results, function(val) {
-        app.addMessage(val);
-
+        if(app.room === val.roomname){
+          app.addMessage(val);
+        }
         app.rooms[val.roomname] = val.roomname;
       });
       app.refreshRoom();
@@ -85,15 +86,22 @@ app.addMessage = function (message){
 
 app.addRoom = function (roomName) {
   roomName = app.escapeHTML(roomName);
+  // if(roomName === 'lobby') {
+  //   $('#roomSelect').append('<option value=' + roomName +'selected="selected">'+ roomName+'</option>');
+
+  // } else {
   $('#roomSelect').append('<option value=' + roomName +'>'+ roomName+'</option>');
+
 }
 
 app.refreshRoom = function() {
   $('#roomSelect').empty();
-  $('#roomSelect').append('<option id="newRoom">Add New Room...</option>')
   _.each(app.rooms, function(val) {
     app.addRoom(val);
   });
+
+  $('#roomSelect').append('<option>Add New Room...</option>')
+  $('#roomSelect').val(app.room);
 }
 
 app.addFriend = function(userName) {
@@ -109,16 +117,27 @@ $('#chats').on('click', 'a.username', function(evt){
 //Send message event handler
 $('#main').on('click', '#send', function(evt){
   var textMessage = $('#message').val();
-  var user = window.location.search.slice(10);
+  app.user = window.location.search.slice(10);
   app.send({
     text: textMessage,
-    username: user,
-    roomname: 'lobby'
+    username: app.user,
+    roomname: app.room
   });
 });
 //Chat room event handler
 $('#roomSelect').change(function(evt) {
-  console.log('test');
+  if(this.value === 'Add New Room...'){
+    var newRoom = prompt('Please Enter a Room Name');
+    newRoom = app.escapeHTML(newRoom);
+    app.send({
+      text: 'Welcome to ' + newRoom,
+      username: 'Chat Moderator',
+      roomname: newRoom
+    });
+    app.addRoom(newRoom);
+    $('#roomSelect').val(newRoom);
+  }
+  app.clearMessages();
   app.fetch();
 });
 
@@ -128,10 +147,10 @@ app.init();
 
  setInterval(function(){
    app.fetch();
- }, 2000);
+ }, 5000);
  setInterval(function(){
    app.clearMessages();
- }, 10000);
+ }, 6000);
 
 });
 
